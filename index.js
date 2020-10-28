@@ -32,3 +32,4 @@ mongoose.connect(
 //set up routes
 
 app.use("/users", require("./routes/userRoutes"));
+app.use("/posts", require("./routes/postsRouter"));

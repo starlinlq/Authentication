@@ -6,6 +6,7 @@ const auth = require("../middleware/auth");
 router.post("/register", async (req, res) => {
   try {
     let { email, password, passwordCheck, displayName } = req.body;
+    console.log(req.body);
 
     if (!email || !password || !passwordCheck) {
       return res.status(400).json({ msg: "not all filed have been entered" });
@@ -38,7 +39,7 @@ router.post("/register", async (req, res) => {
       displayName,
     });
     const savedUser = await newUser.save();
-    res.json(savedUser);
+    res.json({ email, displayName });
   } catch (err) {
     res.status(500).json({ err: err.message });
   }
@@ -47,6 +48,7 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log(req.body);
     //validate
     if (!password || !email) {
       return res.status(400).json({ msg: "not all filed have been entered" });
@@ -66,7 +68,6 @@ router.post("/login", async (req, res) => {
       user: {
         id: user.user_id,
         displayName: user.displayName,
-        email: user.email,
       },
     });
   } catch (err) {
@@ -95,6 +96,14 @@ router.post("/tokenIsValid", async (req, res) => {
   } catch (err) {
     res.status(500).json({ erro: error.message });
   }
+});
+
+router.get("/", auth, async (req, res) => {
+  const user = await User.findById(req.user);
+  res.json({
+    displayName: user.displayName,
+    id: user._id,
+  });
 });
 
 module.exports = router;
