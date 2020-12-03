@@ -22,6 +22,7 @@ mongoose.connect(
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
+    useFindAndModify: false,
   },
   (err) => {
     if (err) throw erro;
@@ -33,3 +34,4 @@ mongoose.connect(
 
 app.use("/users", require("./routes/userRoutes"));
 app.use("/posts", require("./routes/postsRouter"));
+app.use("/comments", require("./routes/commentsRoutes"));

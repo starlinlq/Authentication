@@ -63,10 +63,11 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ msg: "Invalid Credentials" });
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    console.log(user);
     res.json({
       token,
       user: {
-        id: user.user_id,
+        id: user._id,
         displayName: user.displayName,
       },
     });
@@ -100,9 +101,43 @@ router.post("/tokenIsValid", async (req, res) => {
 
 router.get("/", auth, async (req, res) => {
   const user = await User.findById(req.user);
+
   res.json({
     displayName: user.displayName,
     id: user._id,
+    bio: user.bio,
+    location: user.location,
+    interest: user.interest,
+    photoUrl: user.photoUrl,
+  });
+});
+
+router.post("/update", auth, async (req, res) => {
+  const { userId, name, bio, interest, location, photoUrl } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { displayName: name, bio, interest, location, photoUrl: photoUrl.url },
+      { new: true }
+    );
+
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ erro: error.message });
+  }
+});
+
+router.post("/info", async (req, res) => {
+  const user = await User.findById(req.body.userId);
+
+  res.json({
+    displayName: user.displayName,
+    bio: user.bio,
+    location: user.location,
+    interest: user.interest,
+    photoUrl: user.photoUrl,
   });
 });
 
