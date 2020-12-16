@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   location: { type: String },
   interest: { type: String },
   photoUrl: { type: String },
+  savedPost: [],
 });
 
 module.exports = User = mongoose.model("user", userSchema);

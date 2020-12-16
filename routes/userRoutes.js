@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const auth = require("../middleware/auth");
+const { findByIdAndUpdate } = require("../models/userModel");
 router.post("/register", async (req, res) => {
   try {
     let { email, password, passwordCheck, displayName } = req.body;
@@ -37,8 +38,13 @@ router.post("/register", async (req, res) => {
       email,
       password: passwordHash,
       displayName,
+      bio: "",
+      location: "",
+      interest: "",
+      photoUrl: "https://i.stack.imgur.com/l60Hf.png",
+      savedPost: [],
     });
-    const savedUser = await newUser.save();
+    await newUser.save();
     res.json({ email, displayName });
   } catch (err) {
     res.status(500).json({ err: err.message });
@@ -67,8 +73,11 @@ router.post("/login", async (req, res) => {
     res.json({
       token,
       user: {
+        token,
         id: user._id,
         displayName: user.displayName,
+        savedPost: user.savedPost,
+        photoUrl: user.photoUrl,
       },
     });
   } catch (err) {
@@ -109,7 +118,58 @@ router.get("/", auth, async (req, res) => {
     location: user.location,
     interest: user.interest,
     photoUrl: user.photoUrl,
+    savedPost: user.savedPost,
   });
+});
+
+router.post("/saved", auth, async (req, res) => {
+  const userData = await User.findById(req.user);
+  const { userId, item } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { savedPost: [...userData.savedPost, { ...item, userId }] },
+      { new: true }
+    );
+
+    await user.save();
+    res.json({ savedPost: user.savedPost });
+  } catch (err) {
+    res.status(500).json({ error: "something went wrong" });
+  }
+});
+router.get("/loadsaved", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user);
+
+    res.json({ savedPost: user.savedPost });
+  } catch (err) {
+    res.status(500).json({ error: "something went wrong" });
+  }
+});
+
+router.post("/detelesaved", auth, async (req, res) => {
+  const { removePostId, userId } = req.body;
+  const userData = await User.findById(req.user);
+  const removeSave = userData.savedPost.filter(
+    (data) => data._id !== removePostId
+  );
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { _id: userId },
+      { savedPost: [...removeSave] },
+      { new: true }
+    );
+
+    await user.save();
+    res.json({
+      savedPost: [...removeSave],
+    });
+  } catch (err) {
+    res.status(500).json({ error: "something went wrong" });
+  }
 });
 
 router.post("/update", auth, async (req, res) => {
@@ -123,9 +183,9 @@ router.post("/update", auth, async (req, res) => {
     );
 
     await user.save();
-    res.json(user);
+    res.json({ savedPost: user.savedPost });
   } catch (err) {
-    res.status(500).json({ erro: error.message });
+    res.status(500).json({ error: "something went wrong" });
   }
 });
 
